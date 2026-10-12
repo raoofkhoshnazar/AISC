@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="رتبه‌بندی سازندگان AISC" />
+    <title>رتبه‌بندی | AISC</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="dashboard.css" />
+    <link rel="stylesheet" href="leaderboard.css" />
+    <link rel="stylesheet" href="aisc-design.css" />
+  </head>
+  <body class="dashboard-page"><div class="dashboard-shell"><aside class="sidebar"><a class="brand" href="index.html"><span class="brand-mark">A</span><span>AISC</span></a><nav aria-label="ناوبری داشبورد"><a class="side-link" href="student.html"><span>⌂</span> خانه</a><a class="side-link" href="learning.html"><span>✦</span> مسیر من</a><a class="side-link" href="learning.html#assignments"><span>✓</span> مأموریت‌ها</a><a class="side-link" href="student.html#kanban"><span>▦</span> کانبان من</a><a class="side-link active" href="leaderboard.html"><span>♛</span> رتبه‌بندی</a></nav><div class="support-card"><div class="mini-mashtab">✦</div><b>هر قدم ارزش دارد</b><p>برای بهترشدن خودت بساز، نه فقط رتبه.</p></div><div class="profile-actions"><a class="profile-link" href="student.html"><span class="avatar" id="profile-avatar">ر</span><span><b id="profile-name">دانش‌آموز</b><small id="profile-level">سطح ۱</small></span><i>‹</i></a><button class="logout-button" type="button" id="logout-button">خروج</button></div></aside><main class="dashboard-main"><header class="leaderboard-header"><p class="eyebrow">کامیونیتی سازندگان</p><h1>رتبه‌بندی AISC</h1><p>هر XP، نتیجهٔ یک کار واقعی و تأییدشده است.</p></header><p class="manager-error" id="leaderboard-error" role="alert"></p><section class="podium" id="podium"><div class="podium-placeholder">در حال آماده‌سازی رتبه‌ها...</div></section><section class="leaderboard-table"><div class="block-title"><h2>سازندگان برتر</h2><span>بر پایهٔ XP</span></div><ol id="leaderboard-list"><li class="loading-cell">در حال دریافت اطلاعات...</li></ol></section></main></div><script src="supabase-config.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="supabase-client.js"></script><script src="leaderboard.js"></script></body>
+</html>

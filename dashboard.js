@@ -7,7 +7,7 @@ async function hydrateDashboard() {
     return;
   }
 
-  const [{ data: profile }, { data: gamification }] = await Promise.all([
+  const [{ data: profile }, { data: gamification }, { data: badges }] = await Promise.all([
     window.aiscSupabase
       .from('profiles')
       .select('full_name')
@@ -18,6 +18,12 @@ async function hydrateDashboard() {
       .select('xp, level, current_streak')
       .eq('user_id', userData.user.id)
       .maybeSingle(),
+    window.aiscSupabase
+      .from('user_badges')
+      .select('earned_at, badges(title, description, icon)')
+      .eq('user_id', userData.user.id)
+      .order('earned_at', { ascending: false })
+      .limit(3),
   ]);
 
   if (profile?.full_name) {
@@ -38,6 +44,29 @@ async function hydrateDashboard() {
     document.querySelector('#xp-copy').textContent = remainingXp
       ? `${remainingXp.toLocaleString('fa-IR')} XP تا سطح بعدی`
       : 'برای باز کردن سطح بعدی، یک مأموریت دیگر انجام بده.';
+  }
+
+  if (badges) {
+    const badgeList = document.querySelector('#badge-list');
+    const badgesCopy = document.querySelector('#badges-copy');
+    badgeList.replaceChildren();
+    badges.forEach((earned) => {
+      const badge = Array.isArray(earned.badges) ? earned.badges[0] : earned.badges;
+      if (!badge) return;
+      const item = document.createElement('span');
+      item.textContent = badge.icon;
+      item.title = `${badge.title}: ${badge.description}`;
+      badgeList.append(item);
+    });
+    while (badgeList.children.length < 3) {
+      const locked = document.createElement('span');
+      locked.className = 'locked';
+      locked.textContent = '★';
+      badgeList.append(locked);
+    }
+    badgesCopy.textContent = badges.length
+      ? `${badges.length.toLocaleString('fa-IR')} نشان باز کرده‌ای. ادامه بده!`
+      : 'با تأیید نهایی تکلیف‌ها، نشان‌هایت را باز می‌کنی.';
   }
 }
 
