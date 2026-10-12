@@ -45,8 +45,13 @@ loginForm.addEventListener('submit', async (event) => {
     return;
   }
 
-  if (['project_manager', 'executive_manager'].includes(account.role)) {
+  if (account.role === 'project_manager') {
     window.location.href = 'manager.html';
+    return;
+  }
+
+  if (account.role === 'supporter') {
+    window.location.href = 'review.html';
     return;
   }
 
