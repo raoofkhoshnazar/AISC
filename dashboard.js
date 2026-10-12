@@ -22,6 +22,10 @@ async function hydrateDashboard() {
 
 hydrateDashboard();
 
+document.querySelector('[data-learning-open]').addEventListener('click', () => {
+  window.location.href = 'learning.html';
+});
+
 document.querySelector('#logout-button').addEventListener('click', async () => {
   if (window.aiscSupabaseConfigured) await window.aiscSupabase.auth.signOut();
   window.location.href = 'index.html';
