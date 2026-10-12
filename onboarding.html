@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="شروع مسیر AISC" />
+    <title>شروع مسیر | AISC</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="auth.css" />
+  </head>
+  <body class="onboarding-page">
+    <main class="onboarding-shell">
+      <header class="onboarding-header"><a class="brand" href="index.html"><span class="brand-mark">A</span><span>AISC</span></a><div class="step-progress" aria-label="پیشرفت فرم"><span class="active">۱</span><i></i><span>۲</span><i></i><span>۳</span></div><button class="exit-button" type="button" id="save-exit">ذخیره و خروج</button></header>
+      <section class="onboarding-content"><div class="onboarding-copy"><p class="eyebrow" id="step-label">قدم اول از سه قدم</p><h1 id="step-title">بیایید از خودت شروع کنیم.</h1><p id="step-description">با این چند پاسخ، مستطاب می‌تواند راهنمایی‌های دقیق‌تر و کاربردی‌تری برایت آماده کند.</p></div>
+        <form id="onboarding-form" novalidate>
+          <fieldset class="form-step active" data-step="1"><label>دوست داری با چه نامی صدایت کنیم؟<input name="name" placeholder="نام و نام خانوادگی" required /></label><div class="field-row"><label>چند سال داری؟<select name="age" required><option value="">انتخاب کن</option><option>۸ تا ۱۰ سال</option><option>۱۱ تا ۱۳ سال</option><option>۱۴ تا ۱۵ سال</option><option>۱۶ تا ۱۸ سال</option></select></label><label>پایهٔ تحصیلی‌ات چیست؟<input name="grade" placeholder="مثلاً هشتم" required /></label></div><label>در هفته چقدر زمان برای ساختن محصولت داری؟<div class="choice-grid"><input id="time-1" type="radio" name="time" value="کمتر از ۳ ساعت" required><label for="time-1">کمتر از ۳ ساعت</label><input id="time-2" type="radio" name="time" value="۳ تا ۶ ساعت"><label for="time-2">۳ تا ۶ ساعت</label><input id="time-3" type="radio" name="time" value="بیشتر از ۶ ساعت"><label for="time-3">بیشتر از ۶ ساعت</label></div></label></fieldset>
+          <fieldset class="form-step" data-step="2"><label>چه مهارت‌هایی داری یا دوست داری یاد بگیری؟<textarea name="skills" placeholder="مثلاً طراحی، آموزش زبان، نقاشی، تولید محتوا، برنامه‌نویسی..." required></textarea></label><label>به چه موضوع‌ها یا مسئله‌هایی علاقه داری؟<textarea name="interests" placeholder="مثلاً آموزش، بازی، ورزش، هنر، محیط زیست..." required></textarea></label><label>آیا کاری انجام داده‌ای که کسی بابتش به تو پول پرداخت کرده باشد؟<textarea name="experience" placeholder="اگر نه، بنویس هنوز نه. اگر بله، خیلی کوتاه توضیح بده." required></textarea></label></fieldset>
+          <fieldset class="form-step" data-step="3"><label>دوست داری محصولت به چه کسانی کمک کند؟<textarea name="audience" placeholder="مثلاً دانش‌آموزان پایهٔ هفتم، علاقه‌مندان به موسیقی یا والدین..." required></textarea></label><label>بزرگ‌ترین هدف تو از ساختن SaaS چیست؟<textarea name="goal" placeholder="مثلاً کمک به دیگران، کسب درآمد، یادگیری مهارت جدید..." required></textarea></label><label>اگر ایده‌ای داری، همین حالا برایمان بنویس.<small>اگر هنوز ایده نداری، بنویس «هنوز ندارم»؛ در مسیر با هم پیدایش می‌کنیم.</small><textarea name="idea" placeholder="ایدهٔ اولیهٔ من..." required></textarea></label></fieldset>
+          <p class="form-error" id="onboarding-error" role="alert"></p><div class="onboarding-actions"><button class="secondary-button" type="button" id="previous-step" hidden>مرحلهٔ قبل</button><button class="button" type="button" id="next-step">ادامه <span>←</span></button><button class="button" type="submit" id="finish-onboarding" hidden>شروع مسیر من <span>←</span></button></div>
+        </form>
+      </section>
+    </main>
+    <script src="onboarding.js"></script>
+  </body>
+</html>

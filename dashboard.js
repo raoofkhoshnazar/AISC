@@ -1,3 +1,12 @@
+const profile = JSON.parse(localStorage.getItem('aisc-profile') || 'null');
+
+if (profile?.name) {
+  const firstName = profile.name.trim().split(/\s+/)[0];
+  document.querySelector('#profile-name').textContent = profile.name;
+  document.querySelector('#profile-avatar').textContent = firstName.charAt(0);
+  document.querySelector('#greeting-name').textContent = firstName;
+}
+
 const panel = document.querySelector('#ai-panel');
 const input = panel.querySelector('input');
 const messages = panel.querySelector('.ai-messages');
