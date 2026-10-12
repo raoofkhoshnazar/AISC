@@ -22,6 +22,11 @@ async function hydrateDashboard() {
 
 hydrateDashboard();
 
+document.querySelector('#logout-button').addEventListener('click', async () => {
+  if (window.aiscSupabaseConfigured) await window.aiscSupabase.auth.signOut();
+  window.location.href = 'index.html';
+});
+
 const panel = document.querySelector('#ai-panel');
 const input = panel.querySelector('input');
 const messages = panel.querySelector('.ai-messages');

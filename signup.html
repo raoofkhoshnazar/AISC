@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="ثبت‌نام در AISC" />
+    <title>ثبت‌نام | AISC</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="auth.css" />
+  </head>
+  <body class="auth-page">
+    <main class="auth-layout">
+      <section class="auth-intro"><a class="brand" href="index.html"><span class="brand-mark">A</span><span>AISC</span></a><div class="intro-content"><p class="eyebrow">AI SAAS COACH</p><h1>وقتِ ساختن<br /><span>مسیر خودت است.</span></h1><p>با ساختن حساب AISC، مسیر ۱۲ هفته‌ای ساخت محصول آموزشی خودت را آغاز می‌کنی.</p></div><div class="intro-bird"><span>✦</span><i></i><i></i><b></b></div><p class="copyright">AISC · همراه ساختن، نه فقط یاد گرفتن.</p></section>
+      <section class="auth-form-side"><div class="auth-form-wrap"><p class="eyebrow">شروع مسیر</p><h2>حساب AISC بساز</h2><p class="form-description">بعد از ثبت‌نام، چند سؤال کوتاه می‌پرسیم تا نقطهٔ شروع مسیرت را پیدا کنیم.</p><form id="signup-form" novalidate><label>نام و نام خانوادگی<input name="fullName" autocomplete="name" placeholder="نام و نام خانوادگی" required /></label><label>ایمیل<input name="email" type="email" autocomplete="email" placeholder="مثلاً raha@example.com" required /></label><label>رمز عبور<input name="password" type="password" autocomplete="new-password" minlength="8" placeholder="حداقل ۸ کاراکتر" required /></label><p class="form-error" id="signup-error" role="alert"></p><p class="form-success" id="signup-success" role="status"></p><button class="button login-button" type="submit">ساخت حساب AISC <span>←</span></button></form><p class="auth-switch">قبلاً حساب داری؟ <a href="login.html">وارد شو</a></p><a class="back-link" href="index.html">← بازگشت به صفحهٔ اصلی</a></div></section>
+    </main>
+    <script src="supabase-config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-client.js"></script>
+    <script src="signup.js"></script>
+  </body>
+</html>

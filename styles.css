@@ -25,6 +25,9 @@ button { font: inherit; }
 .brand { display: inline-flex; align-items: center; gap: 9px; color: var(--green-dark); font-weight: 900; font-size: 1.42rem; letter-spacing: -.8px; }
 .brand-mark { width: 38px; height: 38px; display: grid; place-items: center; border: 0; border-radius: 14px 14px 14px 4px; background: var(--green); color: white; box-shadow: inset 0 -4px 0 var(--green-dark); font-weight: 900; }
 .nav-links { display: flex; gap: 28px; font-size: .9rem; font-weight: 700; color: #5e6e77; }
+.nav-auth { display: flex; align-items: center; gap: 17px; }
+.login-link { color: var(--blue-dark); font-size: .86rem; font-weight: 800; }
+.login-link:hover { color: var(--red); }
 .nav-links a:hover, .text-link:hover { color: var(--red); }
 .button { display: inline-flex; justify-content: center; align-items: center; background: var(--green); color: white; border: 0; border-radius: 16px; box-shadow: inset 0 -4px 0 var(--green-dark); padding: 13px 24px 17px; font-size: .91rem; font-weight: 800; transition: transform .15s, filter .15s; }
 .button:hover { transform: translateY(-2px); filter: brightness(1.04); }

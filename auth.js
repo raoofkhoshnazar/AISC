@@ -34,7 +34,7 @@ loginForm.addEventListener('submit', async (event) => {
 
   const { data: onboarding, error: profileError } = await window.aiscSupabase
     .from('student_profiles')
-    .select('user_id')
+    .select('onboarding_completed')
     .eq('user_id', signInData.user.id)
     .maybeSingle();
 
@@ -45,5 +45,5 @@ loginForm.addEventListener('submit', async (event) => {
     return;
   }
 
-  window.location.href = onboarding ? 'student.html' : 'onboarding.html';
+  window.location.href = onboarding?.onboarding_completed ? 'student.html' : 'onboarding.html';
 });
