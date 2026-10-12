@@ -1,3 +1,34 @@
+const panel = document.querySelector('#ai-panel');
+const input = panel.querySelector('input');
+const messages = panel.querySelector('.ai-messages');
+let aiConversationId = null;
+
+function appendAiMessage(role, content, className = '') {
+  const message = document.createElement('p');
+  message.className = role === 'user' ? 'from-user' : 'from-ai';
+  if (className) message.classList.add(className);
+  message.textContent = content;
+  messages.append(message);
+  messages.scrollTop = messages.scrollHeight;
+  return message;
+}
+
+async function loadAiConversation(userId) {
+  const storedConversationId = window.localStorage.getItem(`aisc-ai-conversation-${userId}`);
+  if (!storedConversationId) return;
+
+  const { data, error } = await window.aiscSupabase
+    .from('ai_messages')
+    .select('role, content')
+    .eq('conversation_id', storedConversationId)
+    .order('created_at', { ascending: true });
+  if (error || !data?.length) return;
+
+  aiConversationId = storedConversationId;
+  messages.replaceChildren();
+  data.forEach(({ role, content }) => appendAiMessage(role, content));
+}
+
 async function hydrateDashboard() {
   if (!window.aiscSupabaseConfigured) return;
 
@@ -6,6 +37,8 @@ async function hydrateDashboard() {
     window.location.href = 'login.html';
     return;
   }
+
+  await loadAiConversation(userData.user.id);
 
   const [{ data: profile }, { data: gamification }, { data: badges }] = await Promise.all([
     window.aiscSupabase
@@ -81,10 +114,6 @@ document.querySelector('#logout-button').addEventListener('click', async () => {
   window.location.href = 'index.html';
 });
 
-const panel = document.querySelector('#ai-panel');
-const input = panel.querySelector('input');
-const messages = panel.querySelector('.ai-messages');
-
 document.querySelectorAll('[data-ai-open]').forEach((button) => {
   button.addEventListener('click', () => {
     panel.classList.add('open');
@@ -98,13 +127,45 @@ document.querySelector('[data-ai-close]').addEventListener('click', () => {
   panel.setAttribute('aria-hidden', 'true');
 });
 
-panel.querySelector('form').addEventListener('submit', (event) => {
+panel.querySelector('form').addEventListener('submit', async (event) => {
   event.preventDefault();
   const text = input.value.trim();
-  if (!text) return;
-  const message = document.createElement('p');
-  message.className = 'from-ai';
-  message.textContent = `پیامت ثبت شد: «${text}»`;
-  messages.append(message);
+  if (!text || input.disabled) return;
+
+  if (!window.aiscSupabaseConfigured) {
+    appendAiMessage('assistant', 'برای گفت‌وگو، ابتدا اتصال حساب را کامل کن.');
+    return;
+  }
+
+  appendAiMessage('user', text);
   input.value = '';
+  input.disabled = true;
+  const submitButton = panel.querySelector('form button');
+  submitButton.disabled = true;
+  const loadingMessage = appendAiMessage('assistant', 'دارم فکر می‌کنم…', 'loading');
+
+  const { data, error } = await window.aiscSupabase.functions.invoke('aisc-coach', {
+    body: {
+      conversationId: aiConversationId,
+      message: text,
+    },
+  });
+
+  loadingMessage.remove();
+  input.disabled = false;
+  submitButton.disabled = false;
+
+  if (error || !data?.answer) {
+    appendAiMessage('assistant', 'فعلاً نتوانستم پاسخ بدهم. چند لحظهٔ دیگر دوباره تلاش کن.', 'error');
+    input.focus();
+    return;
+  }
+
+  aiConversationId = data.conversationId;
+  const { data: userData } = await window.aiscSupabase.auth.getUser();
+  if (userData.user && aiConversationId) {
+    window.localStorage.setItem(`aisc-ai-conversation-${userData.user.id}`, aiConversationId);
+  }
+  appendAiMessage('assistant', data.answer);
+  input.focus();
 });
