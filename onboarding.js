@@ -39,27 +39,51 @@ nextButton.addEventListener('click', () => {
 previousButton.addEventListener('click', () => showStep(currentStep - 1));
 
 document.querySelector('#save-exit').addEventListener('click', () => {
-  const partialData = Object.fromEntries(new FormData(form));
-  localStorage.setItem('aisc-draft-profile', JSON.stringify(partialData));
-  window.location.href = 'index.html';
-});
-
-form.addEventListener('submit', (event) => {
-  event.preventDefault();
-  if (!validateStep(currentStep)) return;
-  const profile = Object.fromEntries(new FormData(form));
-  localStorage.setItem('aisc-profile', JSON.stringify(profile));
-  localStorage.removeItem('aisc-draft-profile');
   window.location.href = 'student.html';
 });
 
-const draft = JSON.parse(localStorage.getItem('aisc-draft-profile') || 'null');
-if (draft) {
-  Object.entries(draft).forEach(([name, value]) => {
-    const field = form.elements.namedItem(name);
-    if (!field) return;
-    if (field instanceof RadioNodeList) {
-      [...field].forEach((radio) => { radio.checked = radio.value === value; });
-    } else field.value = value;
-  });
-}
+form.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  if (!validateStep(currentStep)) return;
+
+  if (!window.aiscSupabaseConfigured) {
+    error.textContent = 'اتصال امن AISC هنوز تنظیم نشده است.';
+    return;
+  }
+
+  const { data: userData } = await window.aiscSupabase.auth.getUser();
+  if (!userData.user) {
+    window.location.href = 'login.html';
+    return;
+  }
+
+  const data = Object.fromEntries(new FormData(form));
+  finishButton.disabled = true;
+  finishButton.textContent = 'در حال ذخیره...';
+
+  const { error: saveError } = await window.aiscSupabase
+    .from('student_profiles')
+    .upsert({
+      user_id: userData.user.id,
+      age_range: data.age,
+      grade: data.grade,
+      weekly_time: data.time,
+      skills: data.skills,
+      interests: data.interests,
+      paid_experience: data.experience,
+      audience: data.audience,
+      goal: data.goal,
+      idea: data.idea,
+    }, { onConflict: 'user_id' });
+
+  const { error: nameError } = await window.aiscSupabase.rpc('update_my_full_name', { new_full_name: data.name });
+
+  if (saveError || nameError) {
+    error.textContent = 'ذخیره‌سازی انجام نشد. لطفاً دوباره تلاش کن.';
+    finishButton.disabled = false;
+    finishButton.innerHTML = 'شروع مسیر من <span>←</span>';
+    return;
+  }
+
+  window.location.href = 'student.html';
+});

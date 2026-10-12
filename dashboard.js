@@ -1,11 +1,26 @@
-const profile = JSON.parse(localStorage.getItem('aisc-profile') || 'null');
+async function hydrateDashboard() {
+  if (!window.aiscSupabaseConfigured) return;
 
-if (profile?.name) {
-  const firstName = profile.name.trim().split(/\s+/)[0];
-  document.querySelector('#profile-name').textContent = profile.name;
+  const { data: userData } = await window.aiscSupabase.auth.getUser();
+  if (!userData.user) {
+    window.location.href = 'login.html';
+    return;
+  }
+
+  const { data: profile } = await window.aiscSupabase
+    .from('profiles')
+    .select('full_name')
+    .eq('id', userData.user.id)
+    .maybeSingle();
+
+  if (!profile?.full_name) return;
+  const firstName = profile.full_name.trim().split(/\s+/)[0];
+  document.querySelector('#profile-name').textContent = profile.full_name;
   document.querySelector('#profile-avatar').textContent = firstName.charAt(0);
   document.querySelector('#greeting-name').textContent = firstName;
 }
+
+hydrateDashboard();
 
 const panel = document.querySelector('#ai-panel');
 const input = panel.querySelector('input');

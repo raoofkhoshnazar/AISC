@@ -1,18 +1,49 @@
 const loginForm = document.querySelector('#login-form');
 const loginError = document.querySelector('#login-error');
+const loginButton = loginForm.querySelector('button[type="submit"]');
 
-loginForm.addEventListener('submit', (event) => {
+loginForm.addEventListener('submit', async (event) => {
   event.preventDefault();
-  const data = new FormData(loginForm);
-  const identifier = data.get('identifier').trim();
-  const password = data.get('password').trim();
+  loginError.textContent = '';
 
-  if (!identifier || !password) {
-    loginError.textContent = 'لطفاً ایمیل یا کد دسترسی و رمز عبور را وارد کن.';
+  if (!window.aiscSupabaseConfigured) {
+    loginError.textContent = 'اتصال امن AISC هنوز تنظیم نشده است.';
     return;
   }
 
-  localStorage.setItem('aisc-session', JSON.stringify({ identifier }));
-  const profile = JSON.parse(localStorage.getItem('aisc-profile') || 'null');
-  window.location.href = profile ? 'student.html' : 'onboarding.html';
+  const data = new FormData(loginForm);
+  const email = data.get('identifier').trim();
+  const password = data.get('password');
+
+  if (!email || !password) {
+    loginError.textContent = 'لطفاً ایمیل و رمز عبور را وارد کن.';
+    return;
+  }
+
+  loginButton.disabled = true;
+  loginButton.textContent = 'در حال ورود...';
+
+  const { data: signInData, error: signInError } = await window.aiscSupabase.auth.signInWithPassword({ email, password });
+
+  if (signInError) {
+    loginError.textContent = 'ایمیل یا رمز عبور درست نیست.';
+    loginButton.disabled = false;
+    loginButton.innerHTML = 'ورود به AISC <span>←</span>';
+    return;
+  }
+
+  const { data: onboarding, error: profileError } = await window.aiscSupabase
+    .from('student_profiles')
+    .select('user_id')
+    .eq('user_id', signInData.user.id)
+    .maybeSingle();
+
+  if (profileError) {
+    loginError.textContent = 'دریافت پروفایل ممکن نشد. دوباره تلاش کن.';
+    loginButton.disabled = false;
+    loginButton.innerHTML = 'ورود به AISC <span>←</span>';
+    return;
+  }
+
+  window.location.href = onboarding ? 'student.html' : 'onboarding.html';
 });
