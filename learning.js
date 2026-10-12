@@ -3,6 +3,7 @@ const moduleList = document.querySelector('#module-list');
 const moduleContent = document.querySelector('#module-content');
 let currentUser = null;
 let modules = [];
+let moduleStates = new Map();
 let selectedModuleId = null;
 
 const submissionLabels = {
@@ -31,7 +32,11 @@ function safeUrl(value) {
 }
 
 function renderModules() {
-  moduleList.innerHTML = modules.map((module) => `<button class="learning-module ${module.id === selectedModuleId ? 'active' : ''}" type="button" data-module-id="${module.id}"><span>${module.position.toLocaleString('fa-IR')}</span><b>هفتهٔ ${module.position.toLocaleString('fa-IR')}</b></button>`).join('');
+  moduleList.innerHTML = modules.map((module, index) => {
+    const state = moduleStates.get(module.id) || 'locked';
+    const icon = state === 'complete' ? '✓' : state === 'current' ? '★' : '●';
+    return `<button class="learning-module node-${state} ${module.id === selectedModuleId ? 'active' : ''}" type="button" data-module-id="${module.id}" data-module-state="${state}" style="--node-offset: ${(index % 4 === 1 ? 34 : index % 4 === 2 ? 34 : 0)}px" ${state === 'locked' ? 'disabled' : ''}><span>${icon}</span><b>هفتهٔ ${module.position.toLocaleString('fa-IR')}</b><small>${state === 'complete' ? 'تکمیل‌شده' : state === 'current' ? 'مرحلهٔ فعلی' : 'قفل'}</small></button>`;
+  }).join('');
 }
 
 function submissionForm(assignment, submission) {
@@ -120,12 +125,54 @@ async function loadLearning() {
   }
 
   modules = moduleData;
-  await showModule(modules[0].id);
+  const moduleIds = modules.map((module) => module.id);
+  const { data: allAssignments, error: assignmentsError } = await window.aiscSupabase
+    .from('assignments')
+    .select('id, module_id')
+    .in('module_id', moduleIds)
+    .eq('is_published', true);
+
+  if (assignmentsError) {
+    learningError.textContent = 'وضعیت مسیر دریافت نشد. لطفاً دوباره تلاش کن.';
+    return;
+  }
+
+  const allAssignmentIds = allAssignments.map((assignment) => assignment.id);
+  const { data: allSubmissions, error: submissionsError } = allAssignmentIds.length
+    ? await window.aiscSupabase
+      .from('submissions')
+      .select('assignment_id, status')
+      .in('assignment_id', allAssignmentIds)
+      .eq('student_id', currentUser.id)
+    : { data: [], error: null };
+
+  if (submissionsError) {
+    learningError.textContent = 'وضعیت تکلیف‌ها دریافت نشد. لطفاً دوباره تلاش کن.';
+    return;
+  }
+
+  const submissionsByAssignment = new Map(allSubmissions.map((submission) => [submission.assignment_id, submission]));
+  let foundCurrent = false;
+  modules.forEach((module) => {
+    const moduleAssignments = allAssignments.filter((assignment) => assignment.module_id === module.id);
+    const completed = moduleAssignments.length > 0 && moduleAssignments.every((assignment) => submissionsByAssignment.get(assignment.id)?.status === 'manager_approved');
+    if (completed) {
+      moduleStates.set(module.id, 'complete');
+    } else if (!foundCurrent) {
+      moduleStates.set(module.id, 'current');
+      foundCurrent = true;
+    } else {
+      moduleStates.set(module.id, 'locked');
+    }
+  });
+
+  const currentModule = modules.find((module) => moduleStates.get(module.id) === 'current');
+  await showModule(currentModule?.id || modules[0].id);
 }
 
 moduleList.addEventListener('click', (event) => {
   const button = event.target.closest('[data-module-id]');
-  if (button) showModule(button.dataset.moduleId);
+  if (button && button.dataset.moduleState !== 'locked') showModule(button.dataset.moduleId);
 });
 
 moduleContent.addEventListener('submit', async (event) => {
