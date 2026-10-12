@@ -32,6 +32,24 @@ loginForm.addEventListener('submit', async (event) => {
     return;
   }
 
+  const { data: account, error: accountError } = await window.aiscSupabase
+    .from('profiles')
+    .select('role')
+    .eq('id', signInData.user.id)
+    .maybeSingle();
+
+  if (accountError || !account) {
+    loginError.textContent = 'دریافت پروفایل ممکن نشد. دوباره تلاش کن.';
+    loginButton.disabled = false;
+    loginButton.innerHTML = 'ورود به AISC <span>←</span>';
+    return;
+  }
+
+  if (['project_manager', 'executive_manager'].includes(account.role)) {
+    window.location.href = 'manager.html';
+    return;
+  }
+
   const { data: onboarding, error: profileError } = await window.aiscSupabase
     .from('student_profiles')
     .select('onboarding_completed')

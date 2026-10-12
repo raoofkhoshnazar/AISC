@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="پنل مدیریت AISC" />
+    <title>پنل مدیریت | AISC</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="dashboard.css" />
+    <link rel="stylesheet" href="manager.css" />
+  </head>
+  <body class="dashboard-page">
+    <div class="dashboard-shell">
+      <aside class="sidebar">
+        <a class="brand" href="index.html"><span class="brand-mark">A</span><span>AISC</span></a>
+        <nav aria-label="ناوبری مدیریت">
+          <a class="side-link active" href="#overview"><span>⌂</span> نمای کلی</a>
+          <a class="side-link" href="#students"><span>◌</span> دانش‌آموزان</a>
+          <a class="side-link disabled" href="#"><span>✓</span> بررسی تکالیف</a>
+          <a class="side-link disabled" href="#"><span>▦</span> مسیر و محتوا</a>
+        </nav>
+        <div class="support-card"><div class="mini-mashtab">✦</div><b>پنل مدیریت AISC</b><p>داده‌های این صفحه مستقیماً از Supabase خوانده می‌شوند.</p></div>
+        <div class="profile-actions"><div class="profile-link"><span class="avatar" id="manager-avatar">م</span><span><b id="manager-name">مدیر پروژه</b><small>مدیر پروژه</small></span></div><button class="logout-button" type="button" id="logout-button">خروج</button></div>
+      </aside>
+      <main class="dashboard-main" id="overview">
+        <header class="dashboard-header"><div><p class="eyebrow">مدیریت AISC</p><h1>نمای کلی مجموعه</h1><p class="manager-intro">وضعیت دانش‌آموزان و آماده‌بودن آن‌ها برای شروع مسیر را اینجا دنبال کن.</p></div></header>
+        <p class="manager-error" id="manager-error" role="alert"></p>
+        <section class="metric-grid" aria-label="شاخص‌های مجموعه">
+          <article><span class="metric-icon blue">◌</span><p>دانش‌آموزان</p><strong id="student-count">—</strong></article>
+          <article><span class="metric-icon green">✓</span><p>onboarding تکمیل‌شده</p><strong id="onboarding-count">—</strong></article>
+          <article><span class="metric-icon yellow">⌁</span><p>پشتیبان‌ها</p><strong id="supporter-count">—</strong></article>
+          <article><span class="metric-icon red">!</span><p>نیازمند تکمیل فرم</p><strong id="incomplete-count">—</strong></article>
+        </section>
+        <section class="manager-section" id="students"><div class="block-title"><div><p class="eyebrow">دانش‌آموزان</p><h2>فهرست و وضعیت شروع مسیر</h2></div><label class="search-input"><span>⌕</span><input id="student-search" type="search" placeholder="جست‌وجوی نام" /></label></div><div class="student-table-wrap"><table><thead><tr><th>دانش‌آموز</th><th>وضعیت فرم شروع</th><th>دسترسی</th><th>ایدهٔ اولیه</th></tr></thead><tbody id="students-table"><tr><td colspan="4" class="loading-cell">در حال دریافت اطلاعات...</td></tr></tbody></table></div></section>
+      </main>
+    </div>
+    <script src="supabase-config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-client.js"></script>
+    <script src="manager.js"></script>
+  </body>
+</html>
