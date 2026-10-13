@@ -1,7 +1,60 @@
 const panel = document.querySelector('#ai-panel');
 const input = panel.querySelector('input');
 const messages = panel.querySelector('.ai-messages');
+const notificationButton = document.querySelector('#notification-button');
+const notificationsCard = document.querySelector('#notifications-card');
+const notificationList = document.querySelector('#notification-list');
+const notificationCount = document.querySelector('#notification-count');
 let aiConversationId = null;
+
+function renderNotifications(notifications) {
+  notificationList.replaceChildren();
+  if (!notifications.length) {
+    const empty = document.createElement('p');
+    empty.className = 'notification-empty';
+    empty.textContent = 'اعلانی نداری.';
+    notificationList.append(empty);
+    notificationCount.hidden = true;
+    return;
+  }
+
+  const unreadCount = notifications.filter((notification) => !notification.read_at).length;
+  notificationCount.textContent = unreadCount.toLocaleString('fa-IR');
+  notificationCount.hidden = unreadCount === 0;
+  notifications.forEach((notification) => {
+    const item = document.createElement('article');
+    item.className = `notification-item${notification.read_at ? '' : ' unread'}`;
+    const title = document.createElement('b');
+    title.textContent = notification.title;
+    const body = document.createElement('p');
+    body.textContent = notification.body;
+    item.append(title, body);
+    notificationList.append(item);
+  });
+}
+
+async function loadNotifications() {
+  if (!window.aiscSupabaseConfigured) return;
+  const { data, error } = await window.aiscSupabase
+    .from('notifications')
+    .select('id, title, body, read_at, created_at')
+    .order('created_at', { ascending: false })
+    .limit(10);
+  if (!error) renderNotifications(data ?? []);
+}
+
+async function markNotificationsRead() {
+  const { data: unread } = await window.aiscSupabase
+    .from('notifications')
+    .select('id')
+    .is('read_at', null)
+    .limit(10);
+  if (!unread?.length) return;
+  await window.aiscSupabase.rpc('mark_my_notifications_read', {
+    notification_ids: unread.map((notification) => notification.id),
+  });
+  await loadNotifications();
+}
 
 function appendAiMessage(role, content, className = '') {
   const message = document.createElement('p');
@@ -39,6 +92,7 @@ async function hydrateDashboard() {
   }
 
   await loadAiConversation(userData.user.id);
+  await loadNotifications();
 
   const [{ data: profile }, { data: gamification }, { data: badges }] = await Promise.all([
     window.aiscSupabase
@@ -112,6 +166,13 @@ document.querySelector('[data-learning-open]').addEventListener('click', () => {
 document.querySelector('#logout-button').addEventListener('click', async () => {
   if (window.aiscSupabaseConfigured) await window.aiscSupabase.auth.signOut();
   window.location.href = 'index.html';
+});
+
+document.querySelector('#mark-notifications-read').addEventListener('click', markNotificationsRead);
+notificationButton.addEventListener('click', () => {
+  const isHidden = notificationsCard.hidden;
+  notificationsCard.hidden = !isHidden;
+  notificationButton.setAttribute('aria-expanded', String(isHidden));
 });
 
 document.querySelectorAll('[data-ai-open]').forEach((button) => {
