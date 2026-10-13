@@ -125,13 +125,14 @@ async function loadManagerDashboard() {
   document.querySelector('#manager-name').textContent = account.full_name || 'مدیر پروژه';
   document.querySelector('#manager-avatar').textContent = (account.full_name || 'م').trim().charAt(0);
 
-  const [{ data: profiles, error: profilesError }, { data: onboarding, error: onboardingError }, { data: assignments, error: assignmentsError }] = await Promise.all([
+  const [{ data: profiles, error: profilesError }, { data: onboarding, error: onboardingError }, { data: assignments, error: assignmentsError }, { data: analytics, error: analyticsError }] = await Promise.all([
     window.aiscSupabase.from('profiles').select('id, full_name, role, access').in('role', ['student', 'supporter']).order('created_at', { ascending: false }),
     window.aiscSupabase.from('student_profiles').select('user_id, onboarding_completed, idea'),
     window.aiscSupabase.from('supporter_assignments').select('student_id, supporter_id'),
+    window.aiscSupabase.rpc('get_aisc_manager_analytics'),
   ]);
 
-  if (profilesError || onboardingError || assignmentsError) {
+  if (profilesError || onboardingError || assignmentsError || analyticsError) {
     managerError.textContent = 'اطلاعات مدیریت دریافت نشد. لطفاً دوباره تلاش کن.';
     return;
   }
@@ -143,10 +144,14 @@ async function loadManagerDashboard() {
     .filter((profile) => profile.role === 'student')
     .map((profile) => ({ ...profile, ...onboardingByUser.get(profile.id), supporter_id: assignmentByStudent.get(profile.id) }));
   const completed = students.filter((student) => student.onboarding_completed).length;
-  document.querySelector('#student-count').textContent = students.length.toLocaleString('fa-IR');
-  document.querySelector('#onboarding-count').textContent = completed.toLocaleString('fa-IR');
-  document.querySelector('#incomplete-count').textContent = (students.length - completed).toLocaleString('fa-IR');
+  const metrics = analytics?.[0];
+  document.querySelector('#student-count').textContent = (metrics?.student_count ?? students.length).toLocaleString('fa-IR');
+  document.querySelector('#onboarding-count').textContent = (metrics?.onboarding_completed ?? completed).toLocaleString('fa-IR');
+  document.querySelector('#incomplete-count').textContent = ((metrics?.student_count ?? students.length) - (metrics?.onboarding_completed ?? completed)).toLocaleString('fa-IR');
   document.querySelector('#supporter-count').textContent = supporters.length.toLocaleString('fa-IR');
+  document.querySelector('#supporter-review-count').textContent = (metrics?.supporter_review_pending ?? 0).toLocaleString('fa-IR');
+  document.querySelector('#manager-review-count').textContent = (metrics?.manager_review_pending ?? 0).toLocaleString('fa-IR');
+  document.querySelector('#approved-submission-count').textContent = (metrics?.approved_submissions ?? 0).toLocaleString('fa-IR');
   renderStudents();
 }
 
