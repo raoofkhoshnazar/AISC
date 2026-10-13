@@ -77,9 +77,10 @@ Deno.serve(async (request) => {
   });
   if (userMessageError) return json({ error: 'Could not save message' }, 500);
 
-  const apiKey = Deno.env.get('noqte_ai_api_key');
-  const model = Deno.env.get('noqte_ai_model');
+  const apiKey = Deno.env.get('noqte_ai_api_key')?.trim();
+  const model = Deno.env.get('noqte_ai_model')?.trim();
   if (!apiKey || !model) return json({ error: 'AI service is not configured' }, 503);
+  if (/[^\x00-\xFF]|[\r\n]/.test(apiKey)) return json({ error: 'AI service key is invalid' }, 503);
 
   const system = `تو مستطاب، مربی AI پلتفرم AISC هستی. به فارسی ساده، مهربان و عملی پاسخ بده. مخاطب دانش‌آموز ۸ تا ۱۸ ساله است و دانش فنی عمیقی ندارد. پاسخ را به یک قدم کوچک و قابل انجام تبدیل کن. مسیر آموزشی AISC ثابت است؛ مسیر رسمی را تغییر نده و درباره تغییر مرحله، پیام به خانواده یا تصمیم مدیریتی ادعا نکن. از اطلاعات خصوصی دانش‌آموز فقط برای شخصی‌سازی همین پاسخ استفاده کن.\n\nپروفایل دانش‌آموز: ${JSON.stringify(profile ?? {})}\nاطلاعات شروع مسیر: ${JSON.stringify(studentProfile ?? {})}`;
   const messages = [...(history ?? []), { role: 'user', content: message }];
