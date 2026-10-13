@@ -1,9 +1,61 @@
 const reviewError = document.querySelector('#review-error');
 const reviewList = document.querySelector('#review-list');
 const reviewNav = document.querySelector('#review-nav');
+const notificationButton = document.querySelector('#notification-button');
+const notificationsCard = document.querySelector('#notifications-card');
+const notificationList = document.querySelector('#notification-list');
+const notificationCount = document.querySelector('#notification-count');
 let reviewerRole = null;
 let submissions = [];
 let activeFilter = 'pending';
+
+function renderNotifications(notifications) {
+  notificationList.replaceChildren();
+  if (!notifications.length) {
+    const empty = document.createElement('p');
+    empty.className = 'notification-empty';
+    empty.textContent = 'اعلانی نداری.';
+    notificationList.append(empty);
+    notificationCount.hidden = true;
+    return;
+  }
+
+  const unreadCount = notifications.filter((notification) => !notification.read_at).length;
+  notificationCount.textContent = unreadCount.toLocaleString('fa-IR');
+  notificationCount.hidden = unreadCount === 0;
+  notifications.forEach((notification) => {
+    const item = document.createElement('article');
+    item.className = `notification-item${notification.read_at ? '' : ' unread'}`;
+    const title = document.createElement('b');
+    title.textContent = notification.title;
+    const body = document.createElement('p');
+    body.textContent = notification.body;
+    item.append(title, body);
+    notificationList.append(item);
+  });
+}
+
+async function loadNotifications() {
+  const { data, error } = await window.aiscSupabase
+    .from('notifications')
+    .select('id, title, body, read_at, created_at')
+    .order('created_at', { ascending: false })
+    .limit(10);
+  if (!error) renderNotifications(data ?? []);
+}
+
+async function markNotificationsRead() {
+  const { data: unread } = await window.aiscSupabase
+    .from('notifications')
+    .select('id')
+    .is('read_at', null)
+    .limit(10);
+  if (!unread?.length) return;
+  await window.aiscSupabase.rpc('mark_my_notifications_read', {
+    notification_ids: unread.map((notification) => notification.id),
+  });
+  await loadNotifications();
+}
 
 const statusLabels = {
   draft: 'پیش‌نویس',
@@ -92,6 +144,7 @@ async function loadReviews() {
   }
 
   reviewerRole = account.role;
+  await loadNotifications();
   const name = account.full_name || (reviewerRole === 'supporter' ? 'پشتیبان' : 'مدیر پروژه');
   document.querySelector('#reviewer-name').textContent = name;
   document.querySelector('#reviewer-avatar').textContent = name.trim().charAt(0);
@@ -167,6 +220,13 @@ reviewList.addEventListener('submit', async (event) => {
     return;
   }
   await loadReviews();
+});
+
+document.querySelector('#mark-notifications-read').addEventListener('click', markNotificationsRead);
+notificationButton.addEventListener('click', () => {
+  const isHidden = notificationsCard.hidden;
+  notificationsCard.hidden = !isHidden;
+  notificationButton.setAttribute('aria-expanded', String(isHidden));
 });
 
 document.querySelectorAll('.filter-button').forEach((button) => {
