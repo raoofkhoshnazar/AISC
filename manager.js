@@ -1,9 +1,19 @@
 const managerError = document.querySelector('#manager-error');
 const table = document.querySelector('#students-table');
 const search = document.querySelector('#student-search');
+const detailSection = document.querySelector('#student-details');
+const detailSubmissionList = document.querySelector('#detail-submission-list');
 let students = [];
 let supporters = [];
 
+const submissionLabels = {
+  draft: 'پیش‌نویس',
+  submitted: 'در انتظار بررسی پشتیبان',
+  supporter_revision_requested: 'نیازمند اصلاح',
+  supporter_approved: 'در انتظار تأیید مدیر',
+  manager_revision_requested: 'نیازمند اصلاح مدیر',
+  manager_approved: 'تأیید نهایی',
+};
 const accessLabels = {
   trial: 'آزمایشی',
   paid: 'پولی',
@@ -36,22 +46,79 @@ function supporterOptions(currentSupporterId) {
 
 function renderStudents() {
   const query = search.value.trim().toLowerCase();
-  const filtered = students.filter((student) => student.full_name.toLowerCase().includes(query));
+  const filtered = students.filter((student) => (student.full_name || '').toLowerCase().includes(query));
 
   if (!filtered.length) {
-    table.innerHTML = '<tr><td colspan="5" class="loading-cell">دانش‌آموزی پیدا نشد.</td></tr>';
+    table.innerHTML = '<tr><td colspan="6" class="loading-cell">دانش‌آموزی پیدا نشد.</td></tr>';
     return;
   }
 
   table.innerHTML = filtered.map((student) => {
-    const initial = escapeHtml(student.full_name.trim().charAt(0) || '؟');
+    const initial = escapeHtml((student.full_name || '').trim().charAt(0) || '؟');
     const name = escapeHtml(student.full_name || 'بدون نام');
     const status = student.onboarding_completed
       ? '<span class="status complete">تکمیل شده</span>'
       : '<span class="status pending">در انتظار تکمیل</span>';
     const idea = escapeHtml(student.idea || 'هنوز ثبت نشده');
-    return `<tr><td><div class="student-name"><span>${initial}</span>${name}</div></td><td>${status}</td><td><select class="table-select access-select" data-student-id="${student.id}" aria-label="سطح دسترسی ${name}">${accessOptions(student.access)}</select></td><td><select class="table-select supporter-select" data-student-id="${student.id}" aria-label="پشتیبان ${name}">${supporterOptions(student.supporter_id)}</select></td><td class="idea-cell" title="${idea}">${idea}</td></tr>`;
+    return `<tr><td><div class="student-name"><span>${initial}</span>${name}</div></td><td>${status}</td><td><select class="table-select access-select" data-student-id="${student.id}" aria-label="سطح دسترسی ${name}">${accessOptions(student.access)}</select></td><td><select class="table-select supporter-select" data-student-id="${student.id}" aria-label="پشتیبان ${name}">${supporterOptions(student.supporter_id)}</select></td><td class="idea-cell" title="${idea}">${idea}</td><td><button class="detail-button" type="button" data-student-details="${student.id}">جزئیات</button></td></tr>`;
   }).join('');
+}
+
+async function showStudentDetails(studentId) {
+  const student = students.find((item) => item.id === studentId);
+  if (!student) return;
+
+  detailSection.hidden = false;
+  document.querySelector('#detail-student-name').textContent = student.full_name || 'دانش‌آموز';
+  document.querySelector('#detail-onboarding').textContent = student.onboarding_completed ? 'تکمیل شده' : 'در انتظار تکمیل';
+  document.querySelector('#detail-submission-list').replaceChildren();
+  const loading = document.createElement('p');
+  loading.className = 'loading-cell';
+  loading.textContent = 'در حال دریافت...';
+  detailSubmissionList.append(loading);
+
+  const [{ data: profile, error: profileError }, { data: gamification, error: gamificationError }, { data: submissionData, error: submissionsError }] = await Promise.all([
+    window.aiscSupabase.from('student_profiles').select('grade, age_range').eq('user_id', studentId).maybeSingle(),
+    window.aiscSupabase.from('gamification_profiles').select('xp, level, current_streak, last_activity_date').eq('user_id', studentId).maybeSingle(),
+    window.aiscSupabase.from('submissions').select('assignment_id, status, updated_at').eq('student_id', studentId).order('updated_at', { ascending: false }).limit(5),
+  ]);
+
+  if (profileError || gamificationError || submissionsError) {
+    managerError.textContent = 'جزئیات دانش‌آموز دریافت نشد.';
+    return;
+  }
+
+  document.querySelector('#detail-gamification').textContent = gamification
+    ? `${gamification.xp.toLocaleString('fa-IR')} XP · سطح ${gamification.level.toLocaleString('fa-IR')}`
+    : 'هنوز ثبت نشده';
+  document.querySelector('#detail-grade').textContent = [profile?.age_range, profile?.grade].filter(Boolean).join(' · ') || 'ثبت نشده';
+  document.querySelector('#detail-activity').textContent = gamification?.last_activity_date
+    ? new Date(gamification.last_activity_date).toLocaleDateString('fa-IR')
+    : 'هنوز فعالیتی ثبت نشده';
+
+  const assignmentIds = (submissionData ?? []).map((submission) => submission.assignment_id);
+  const { data: assignments } = assignmentIds.length
+    ? await window.aiscSupabase.from('assignments').select('id, title').in('id', assignmentIds)
+    : { data: [] };
+  const titles = new Map((assignments ?? []).map((assignment) => [assignment.id, assignment.title]));
+  detailSubmissionList.replaceChildren();
+  if (!submissionData?.length) {
+    const empty = document.createElement('p');
+    empty.className = 'notification-empty';
+    empty.textContent = 'هنوز تکلیفی ثبت نشده است.';
+    detailSubmissionList.append(empty);
+    return;
+  }
+  submissionData.forEach((submission) => {
+    const item = document.createElement('div');
+    item.className = 'detail-submission';
+    const title = document.createElement('b');
+    title.textContent = titles.get(submission.assignment_id) || 'تکلیف';
+    const status = document.createElement('span');
+    status.textContent = submissionLabels[submission.status] || submission.status;
+    item.append(title, status);
+    detailSubmissionList.append(item);
+  });
 }
 
 async function updateAccess(event) {
@@ -158,6 +225,14 @@ async function loadManagerDashboard() {
 document.querySelector('#logout-button').addEventListener('click', async () => {
   if (window.aiscSupabaseConfigured) await window.aiscSupabase.auth.signOut();
   window.location.href = 'index.html';
+});
+
+table.addEventListener('click', (event) => {
+  const detailButton = event.target.closest('[data-student-details]');
+  if (detailButton) showStudentDetails(detailButton.dataset.studentDetails);
+});
+document.querySelector('#close-student-details').addEventListener('click', () => {
+  detailSection.hidden = true;
 });
 
 table.addEventListener('change', (event) => {
