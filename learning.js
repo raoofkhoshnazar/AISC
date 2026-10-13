@@ -104,8 +104,8 @@ async function loadLearning() {
     return;
   }
 
-  const firstName = profile.full_name.trim().split(/\s+/)[0] || 'دانش‌آموز';
-  document.querySelector('#profile-name').textContent = profile.full_name || 'دانش‌آموز';
+  const firstName = (profile?.full_name || '').trim().split(/\s+/)[0] || 'دانش‌آموز';
+  document.querySelector('#profile-name').textContent = profile?.full_name || 'دانش‌آموز';
   document.querySelector('#profile-avatar').textContent = firstName.charAt(0);
 
   const { data: paths, error: pathError } = await window.aiscSupabase.from('learning_paths').select('*').eq('is_published', true).order('created_at').limit(1);
